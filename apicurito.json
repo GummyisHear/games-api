@@ -1,0 +1,36 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "Games API",
+        "version": "1.0.0",
+        "description": "A brand new API with no content.  Go nuts!"
+    },
+    "paths": {
+        "/games": {
+            "get": {
+                "tags": [
+                    "games"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "List of games": {
+                                        "value": [
+                                            "Witcher 3",
+                                            "Cyberpunk 2077"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "application/json"
+                    }
+                },
+                "summary": "Get a list of all games",
+                "description": "Returns a list of all games in API"
+            }
+        }
+    }
+}
