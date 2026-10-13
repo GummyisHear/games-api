@@ -1,0 +1,140 @@
+openapi: 3.0.2
+info:
+  title: Games API
+  version: 1.0.0
+  description: |
+    ### This is a Swagger UI for our Games API
+
+    ### Error handling
+    Errors are presented using the HTTP status codes 400-599.
+    The response includes a more detailed explanation of the error in the body.
+
+    ```json
+    {
+      "error": "Cleartext explanation of the error that occurred"
+    }
+    ```
+
+    ### Generic API errors
+    These error responses can be returned by any of the described endpoints.
+
+    | HTTP status | Description |
+    |---|---|
+    | 400 | Bad input parameters or invalid request. More information can be found in the response body. |
+    | 401 | The consumer does not have access to the requested resource or the provided token is not valid. |
+    | 404 | The requested resource cannot be found or the user does not have access to the resource. |
+    | 5XX | A server error has occurred while processing the request. |
+
+paths:
+  /games:
+    get:
+      tags:
+        - games
+      summary: Get a list of all games
+      description: Returns a list of all games in API
+      responses:
+        '200':
+          description: List of games returned successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+              examples:
+                List of games:
+                  value:
+                    - id: 1
+                      name: Witcher 3
+                      price: 29.99
+                    - id: 2
+                      name: Cyberpunk 2077
+                      price: 59.99
+                    - id: 3
+                      name: Minecraft
+                      price: 26.99
+                    - id: 4
+                      name: "Counter-Strike: Global Offensive"
+                      price: 0
+                    - id: 5
+                      name: Roblox
+                      price: 0
+                    - id: 6
+                      name: Grand Theft Auto V
+                      price: 29.99
+                    - id: 7
+                      name: Valorant
+                      price: 0
+                    - id: 8
+                      name: Forza Horizon 5
+                      price: 59.99
+
+  /games/{id}:
+    get:
+      tags:
+        - games ID
+      summary: Get a game by ID
+      description: Returns the details of a specific game identified by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the game to retrieve.
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Game details returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+              examples:
+                Full details of a given game:
+                  value:
+                    id: 1
+                    name: Witcher 3
+                    price: 29.99
+
+        '404':
+          description: Game was not found in games array.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Game was not found:
+                  value:
+                    error: Game 999 was not found in game array.
+
+components:
+  schemas:
+    Game:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Witcher 3
+        price:
+          type: number
+          format: float
+          example: 29.99
+      required:
+        - id
+        - name
+        - price
+
+    error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error message.
+      required:
+        - error
+      example:
+        error: Error message.
