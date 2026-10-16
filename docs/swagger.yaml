@@ -107,6 +107,16 @@ paths:
                 Missing params:
                   value:
                     error: One or all params are missing.
+        '409':
+          description: A game with this name already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Duplicate name:
+                  value:
+                    error: A game with this name already exists
 
   /games/{id}:
     get:
@@ -204,6 +214,16 @@ paths:
                 Game was not found:
                   value:
                     error: Game not found
+        '409':
+          description: A game with this name already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Duplicate name:
+                  value:
+                    error: A game with this name already exists
     delete:
       tags:
         - delete-game

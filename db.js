@@ -25,6 +25,7 @@ async function connect() {
     const database = client.db('gamesdb')
     games = database.collection('games')
     counters = database.collection('counters')
+    await games.createIndex({name: 1}, {unique: true, collation: {locale: 'en', strength: 2}})
 
     if (await games.countDocuments() === 0) {
         for (const game of startingGames) {

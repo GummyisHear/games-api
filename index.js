@@ -27,11 +27,17 @@ app.post('/games', async (req, res) => {
         return res.status(400).send({error: 'One or all params are missing'})
     }
 
-    const game = await db.addGame(req.body.name, req.body.price)
-
-    res.status(201)
-        .location(`${getBaseUrl(req)}/games/${game.id}`)
-        .send(game)
+    try {
+        const game = await db.addGame(req.body.name, req.body.price)
+        res.status(201)
+            .location(`${getBaseUrl(req)}/games/${game.id}`)
+            .send(game)
+    } catch (err) {
+        if (err.code === 11000) {
+            return res.status(409).send({error: 'A game with this name already exists'})
+        }
+        throw err
+    }
 })
 
 app.put('/games/:id', async (req, res) => {
@@ -39,11 +45,18 @@ app.put('/games/:id', async (req, res) => {
         return res.status(400).send({error: 'One or all params are missing'})
     }
 
-    const game = await db.updateGame(req.params.id, req.body.name, req.body.price)
-    if (!game) {
-        return res.status(404).send({error: 'Game not found'})
+    try {
+        const game = await db.updateGame(req.params.id, req.body.name, req.body.price)
+        if (!game) {
+            return res.status(404).send({error: 'Game not found'})
+        }
+        res.send(game)
+    } catch (err) {
+        if (err.code === 11000) {
+            return res.status(409).send({error: 'A game with this name already exists'})
+        }
+        throw err
     }
-    res.send(game)
 })
 
 app.delete('/games/:id', async (req, res) => {
