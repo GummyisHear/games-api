@@ -18,6 +18,7 @@
   "homepage": "https://github.com/GummyisHear/games-api#readme",
   "description": "",
   "dependencies": {
+    "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "express": "^5.3.0",
     "swagger-ui-express": "^5.0.1",
