@@ -158,12 +158,22 @@ paths:
           description: The ID of the game to delete.
           schema:
             type: integer
-          example: 8
+          example: 2
+      requestBody:
+        description: The game to be deleted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/delete-game'
+            examples:
+              Game to delete:
+                value:
+                  id: 2
       responses:
         '204':
           description: Game was deleted successfully. No content is returned.
         '404':
-          description: Game was not found in games array.
+          description: Game with the given ID was not found in games array.
           content:
             application/json:
               schema:
@@ -171,7 +181,7 @@ paths:
               examples:
                 Game was not found:
                   value:
-                    error: Game 999 was not found in game array.
+                    error: Game not found
 
 components:
   schemas:
@@ -209,6 +219,17 @@ components:
       example:
         name: Tetris
         price: 0.99
+
+    delete-game:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+      required:
+        - id
+      example:
+        id: 2
 
     error:
       type: object
