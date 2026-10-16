@@ -37,7 +37,7 @@ app.post('/games', (req, res) => {
         id: games.length + 1,
         price: req.body.price,
         name: req.body.name
-    }//
+    }
 
     games.push(game)
 
