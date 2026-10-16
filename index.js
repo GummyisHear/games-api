@@ -10,32 +10,44 @@ const db = require('./db')
 app.use(cors())
 app.use(express.json())
 
-app.get('/games', (req, res) => {
-    res.send(db.getGames())
+app.get('/games', async (req, res) => {
+    res.send(await db.getGames())
 })
 
-app.get('/games/:id', (req, res) => {
-    const game = db.getGame(req.params.id)
+app.get('/games/:id', async (req, res) => {
+    const game = await db.getGame(req.params.id)
     if (!game) {
         return res.status(404).send({error: 'Game not found'})
     }
     res.send(game)
 })
 
-app.post('/games', (req, res) => {
+app.post('/games', async (req, res) => {
     if (!req.body.name || req.body.price === undefined) {
         return res.status(400).send({error: 'One or all params are missing'})
     }
 
-    const game = db.addGame(req.body.name, req.body.price)
+    const game = await db.addGame(req.body.name, req.body.price)
 
     res.status(201)
         .location(`${getBaseUrl(req)}/games/${game.id}`)
         .send(game)
 })
 
-app.delete('/games/:id', (req, res) => {
-    if (!db.deleteGame(req.params.id)) {
+app.put('/games/:id', async (req, res) => {
+    if (!req.body.name || req.body.price === undefined) {
+        return res.status(400).send({error: 'One or all params are missing'})
+    }
+
+    const game = await db.updateGame(req.params.id, req.body.name, req.body.price)
+    if (!game) {
+        return res.status(404).send({error: 'Game not found'})
+    }
+    res.send(game)
+})
+
+app.delete('/games/:id', async (req, res) => {
+    if (!await db.deleteGame(req.params.id)) {
         return res.status(404).send({error: 'Game not found'})
     }
     res.status(204).send()
@@ -43,8 +55,13 @@ app.delete('/games/:id', (req, res) => {
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
-app.listen(port, () => {
-    console.log(`API up at: http://localhost:${port}`)
+db.connect().then(() => {
+    app.listen(port, () => {
+        console.log(`API up at: http://localhost:${port}`)
+    })
+}).catch(err => {
+    console.error('Could not connect to MongoDB:', err.message)
+    process.exit(1)
 })
 
 function getBaseUrl(req) {

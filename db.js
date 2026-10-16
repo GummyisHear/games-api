@@ -1,13 +1,13 @@
-const Database = require('better-sqlite3')
-const db = new Database('games.db')
+require('dotenv').config()
+const {MongoClient} = require('mongodb')
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS games (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        price REAL NOT NULL
-    )
-`)
+const url = process.env.MONGODB_URL || 'mongodb://localhost:27017'
+const client = new MongoClient(url)
+
+let games
+let counters
+
+const noMongoId = {projection: {_id: 0}}
 
 const startingGames = [
     {name: "Witcher 3", price: 29.99},
@@ -20,29 +20,53 @@ const startingGames = [
     {name: "Forza Horizon 5", price: 59.99}
 ]
 
-if (db.prepare('SELECT COUNT(*) AS count FROM games').get().count === 0) {
-    const insert = db.prepare('INSERT INTO games (name, price) VALUES (?, ?)')
-    for (const game of startingGames) {
-        insert.run(game.name, game.price)
+async function connect() {
+    await client.connect()
+    const database = client.db('gamesdb')
+    games = database.collection('games')
+    counters = database.collection('counters')
+
+    if (await games.countDocuments() === 0) {
+        for (const game of startingGames) {
+            await addGame(game.name, game.price)
+        }
     }
 }
 
-function getGames() {
-    return db.prepare('SELECT * FROM games').all()
+async function getNextId() {
+    const counter = await counters.findOneAndUpdate(
+        {_id: 'games'},
+        {$inc: {seq: 1}},
+        {upsert: true, returnDocument: 'after'}
+    )
+    return counter.seq
 }
 
-function getGame(id) {
-    return db.prepare('SELECT * FROM games WHERE id = ?').get(id)
+async function getGames() {
+    return await games.find({}, noMongoId).sort({id: 1}).toArray()
 }
 
-function addGame(name, price) {
-    const info = db.prepare('INSERT INTO games (name, price) VALUES (?, ?)').run(name, price)
-    return {id: info.lastInsertRowid, name, price}
+async function getGame(id) {
+    return await games.findOne({id: Number(id)}, noMongoId)
 }
 
-function deleteGame(id) {
-    const info = db.prepare('DELETE FROM games WHERE id = ?').run(id)
-    return info.changes > 0
+async function addGame(name, price) {
+    const game = {id: await getNextId(), name, price}
+    await games.insertOne({...game})
+    return game
 }
 
-module.exports = {getGames, getGame, addGame, deleteGame}
+async function updateGame(id, name, price) {
+    return await games.findOneAndUpdate(
+        {id: Number(id)},
+        {$set: {name, price}},
+        {returnDocument: 'after', ...noMongoId}
+    )
+}
+
+async function deleteGame(id) {
+    const result = await games.deleteOne({id: Number(id)})
+    return result.deletedCount > 0
+}
+
+module.exports = {connect, getGames, getGame, addGame, deleteGame, updateGame}

@@ -146,6 +146,64 @@ paths:
                 Game was not found:
                   value:
                     error: Game 999 was not found in game array.
+    put:
+      tags:
+        - update-game
+      summary: Updates a game
+      description: Updates the name and price of the game identified by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the game to update.
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        description: The new details of the game
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/update-game'
+            examples:
+              Updated game:
+                value:
+                  name: Witcher 3 GOTY
+                  price: 39.99
+      responses:
+        '200':
+          description: Game was updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+              examples:
+                Updated game:
+                  value:
+                    id: 1
+                    name: Witcher 3 GOTY
+                    price: 39.99
+        '400':
+          description: One or all params are missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Missing params:
+                  value:
+                    error: One or all params are missing
+        '404':
+          description: Game with the given ID was not found in games array.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Game was not found:
+                  value:
+                    error: Game not found
     delete:
       tags:
         - delete-game
@@ -219,6 +277,23 @@ components:
       example:
         name: Tetris
         price: 0.99
+
+    update-game:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Witcher 3 GOTY
+        price:
+          type: number
+          format: float
+          example: 39.99
+      required:
+        - name
+        - price
+      example:
+        name: Witcher 3 GOTY
+        price: 39.99
 
     delete-game:
       type: object
