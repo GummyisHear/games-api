@@ -1,11 +1,13 @@
 require('dotenv').config()
 const {MongoClient} = require('mongodb')
+const bcrypt = require('bcryptjs')
 
 const url = process.env.MONGODB_URL || 'mongodb://localhost:27017'
 const client = new MongoClient(url)
 
 let games
 let counters
+let users
 
 const noMongoId = {projection: {_id: 0}}
 
@@ -25,12 +27,22 @@ async function connect() {
     const database = client.db('gamesdb')
     games = database.collection('games')
     counters = database.collection('counters')
+    users = database.collection('users')
+
     await games.createIndex({name: 1}, {unique: true, collation: {locale: 'en', strength: 2}})
+    await users.createIndex({username: 1}, {unique: true})
 
     if (await games.countDocuments() === 0) {
         for (const game of startingGames) {
             await addGame(game.name, game.price)
         }
+    }
+
+    if (await users.countDocuments() === 0) {
+        const adminUsername = process.env.ADMIN_USERNAME
+        const adminPassword = process.env.ADMIN_PASSWORD
+        const hashedPassword = await bcrypt.hash(adminPassword, 10)
+        await users.insertOne({username: adminUsername, password: hashedPassword, role: 'admin'})
     }
 }
 
@@ -70,4 +82,14 @@ async function deleteGame(id) {
     return result.deletedCount > 0
 }
 
-module.exports = {connect, getGames, getGame, addGame, deleteGame, updateGame}
+async function createUser(username, password, role = 'user') {
+    const hashedPassword = await bcrypt.hash(password, 10)
+    await users.insertOne({username, password: hashedPassword, role})
+    return {username, role}
+}
+
+async function getUserByUsername(username) {
+    return await users.findOne({username})
+}
+
+module.exports = {connect, getGames, getGame, addGame, deleteGame, updateGame, createUser, getUserByUsername}

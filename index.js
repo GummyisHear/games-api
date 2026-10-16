@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const cors = require('cors')
 const app = express()
@@ -6,9 +7,12 @@ const swaggerUi = require('swagger-ui-express')
 const yamljs = require('yamljs')
 const swaggerDocument = yamljs.load('./docs/swagger.yaml')
 const db = require('./db')
+const auth = require('./auth')
 
 app.use(cors())
 app.use(express.json())
+
+app.use(auth.router)
 
 app.get('/games', async (req, res) => {
     res.send(await db.getGames())
@@ -22,7 +26,7 @@ app.get('/games/:id', async (req, res) => {
     res.send(game)
 })
 
-app.post('/games', async (req, res) => {
+app.post('/games', auth.authenticateToken, async (req, res) => {
     if (!req.body.name || req.body.price === undefined) {
         return res.status(400).send({error: 'One or all params are missing'})
     }
@@ -40,7 +44,7 @@ app.post('/games', async (req, res) => {
     }
 })
 
-app.put('/games/:id', async (req, res) => {
+app.put('/games/:id', auth.authenticateToken, auth.requireAdmin, async (req, res) => {
     if (!req.body.name || req.body.price === undefined) {
         return res.status(400).send({error: 'One or all params are missing'})
     }
@@ -59,7 +63,7 @@ app.put('/games/:id', async (req, res) => {
     }
 })
 
-app.delete('/games/:id', async (req, res) => {
+app.delete('/games/:id', auth.authenticateToken, auth.requireAdmin, async (req, res) => {
     if (!await db.deleteGame(req.params.id)) {
         return res.status(404).send({error: 'Game not found'})
     }
