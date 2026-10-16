@@ -68,6 +68,45 @@ paths:
                     - id: 8
                       name: Forza Horizon 5
                       price: 59.99
+    post:
+      tags:
+        - new-game
+      summary: Creates a game
+      description: Creates a new game.
+      requestBody:
+        description: A new game to be created
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/new-game'
+            examples:
+              New game:
+                value:
+                  name: Tetris
+                  price: 0.99
+      responses:
+        '201':
+          description: Game was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/new-game'
+              examples:
+                Created game:
+                  value:
+                    name: Tetris
+                    price: 0.99
+        '400':
+          description: One or all params are missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Missing params:
+                  value:
+                    error: One or all params are missing.
 
   /games/{id}:
     get:
@@ -107,6 +146,32 @@ paths:
                 Game was not found:
                   value:
                     error: Game 999 was not found in game array.
+    delete:
+      tags:
+        - delete-game
+      summary: Deletes a game
+      description: Deletes the game identified by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the game to delete.
+          schema:
+            type: integer
+          example: 8
+      responses:
+        '204':
+          description: Game was deleted successfully. No content is returned.
+        '404':
+          description: Game was not found in games array.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Game was not found:
+                  value:
+                    error: Game 999 was not found in game array.
 
 components:
   schemas:
@@ -127,6 +192,23 @@ components:
         - id
         - name
         - price
+
+    new-game:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Tetris
+        price:
+          type: number
+          format: float
+          example: 0.99
+      required:
+        - name
+        - price
+      example:
+        name: Tetris
+        price: 0.99
 
     error:
       type: object
